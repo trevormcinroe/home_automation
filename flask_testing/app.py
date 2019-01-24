@@ -1,86 +1,46 @@
-import random
-from bokeh.models import (HoverTool, FactorRange, Plot, LinearAxis, Grid,
-                          Range1d)
-from bokeh.models.glyphs import VBar
-from bokeh.plotting import figure
-from bokeh.embed import components
-from bokeh.models.sources import ColumnDataSource
 from flask import Flask, render_template
-# Init the app
+from bokeh.embed import components
+from bokeh.plotting import figure
+from bokeh.resources import INLINE
+from bokeh.util.string import encode_utf8
+from db import data_query
+
 app = Flask(__name__)
 
-@app.route('/<int:bars_count>/')
-@app.route("/<int:bars_count>/")
-def chart(bars_count):
-    if bars_count <= 0:
-        bars_count = 1
 
-    data = {"days": [], "bugs": [], "costs": []}
-    for i in range(1, bars_count + 1):
-        data['days'].append(i)
-        data['bugs'].append(random.randint(1,100))
-        data['costs'].append(random.uniform(1.00, 1000.00))
+@app.route('/')
+def index():
+    return 'Hello, World!'
 
-    hover = create_hover_tool()
-    plot = create_bar_chart(data, "Bugs found per day", "days",
-                            "bugs", hover)
-    script, div = components(plot)
+@app.route('/bokeh')
+def bokeh():
+    x = data_query()['zipcode']
+    y = data_query()['temp']
+    # init a basic bar chart:
+    # http://bokeh.pydata.org/en/latest/docs/user_guide/plotting.html#bars
+    fig = figure(plot_width=1200, plot_height=600)
+    # fig.vbar(
+    #     x=[1, 2, 3, 4],
+    #     width=0.5,
+    #     bottom=0,
+    #     top=[1.7, 2.2, 4.6, 3.9],
+    #     color='navy'
+    # )
+    fig.line(x=[x for x in range(len(y)+1)], y=y)
+    # grab the static resources
+    js_resources = INLINE.render_js()
+    css_resources = INLINE.render_css()
 
-    return render_template("chart.html", bars_count=bars_count,
-                           the_div=div, the_script=script)
-def create_hover_tool():
-    """Generates the HTML for the Bokeh's hover data tool on our graph."""
-    hover_html = """
-      <div>
-        <span class="hover-tooltip">$x</span>
-      </div>
-      <div>
-        <span class="hover-tooltip">@bugs bugs</span>
-      </div>
-      <div>
-        <span class="hover-tooltip">$@costs{0.00}</span>
-      </div>
-    """
-    return HoverTool(tooltips=hover_html)
-
-
-def create_bar_chart(data, title, x_name, y_name, hover_tool=None,
-                     width=1200, height=300):
-    """Creates a bar chart plot with the exact styling for the centcom
-       dashboard. Pass in data as a dictionary, desired plot title,
-       name of x axis, y axis and the hover tool HTML.
-    """
-    source = ColumnDataSource(data)
-    xdr = FactorRange(factors=data[x_name])
-    ydr = Range1d(start=0,end=max(data[y_name])*1.5)
-
-    tools = []
-    if hover_tool:
-        tools = [hover_tool,]
-
-    plot = figure(title=title, x_range=xdr, y_range=ydr, plot_width=width,
-                  plot_height=height, h_symmetry=False, v_symmetry=False,
-                  min_border=0, toolbar_location="above", tools=tools,
-                  responsive=True, outline_line_color="#666666")
-
-    glyph = VBar(x=x_name, top=y_name, bottom=0, width=.8,
-                 fill_color="#e12127")
-    plot.add_glyph(source, glyph)
-
-    xaxis = LinearAxis()
-    yaxis = LinearAxis()
-
-    plot.add_layout(Grid(dimension=0, ticker=xaxis.ticker))
-    plot.add_layout(Grid(dimension=1, ticker=yaxis.ticker))
-    plot.toolbar.logo = None
-    plot.min_border_top = 0
-    plot.xgrid.grid_line_color = None
-    plot.ygrid.grid_line_color = "#999999"
-    plot.yaxis.axis_label = "Bugs found"
-    plot.ygrid.grid_line_alpha = 0.1
-    plot.xaxis.axis_label = "Days after app deployment"
-    plot.xaxis.major_label_orientation = 1
-    return plot
+    # render template
+    script, div = components(fig)
+    html = render_template(
+        'index.html',
+        plot_script=script,
+        plot_div=div,
+        js_resources=js_resources,
+        css_resources=css_resources,
+    )
+    return encode_utf8(html)
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)

@@ -1,14 +1,14 @@
-<title>Website</title>
-
-<style>
-@import url(http://fonts.googleapis.com/css?family=Amatic+SC:700);</p>
-<p>body{<br />
-    text-align: center;<br />
-}<br />
-h1{<br />
-    font-family: 'Amatic SC', cursive;<br />
-    font-weight: normal;<br />
-    color: #8ac640;<br />
-    font-size: 2.5em;<br />
-}</p>
-</style>{% block body %}{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Bokeh includes-->
+    <link rel="stylesheet" href="http://cdn.pydata.org/bokeh/release/bokeh-0.12.13.min.css" type="text/css" />
+    <script type="text/javascript" src="http://cdn.pydata.org/bokeh/release/bokeh-0.12.13.min.js"></script>
+  </head>
+  <body>
+    <div>
+        <h1>Bokeh sample</h1>
+        {% block body %}{% endblock %}
+    </div>
+  </body>
+</html>
