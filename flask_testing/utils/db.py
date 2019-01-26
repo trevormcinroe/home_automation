@@ -1,10 +1,11 @@
 import pandas as pd
 from sqlalchemy import *
 import time
+import datetime
 
 
 
-def data_query():
+def data_query(zipcode):
     '''A helper function to pull in data
     Args:
 
@@ -17,9 +18,12 @@ def data_query():
     con = engine.connect()
 
     # Pulling in live data
-    live_df = pd.read_sql(sql="""SELECT * FROM dallas_weather where zipcode = \'75204\' limit 10;""", con=con)
+    live_df = pd.read_sql(sql="""SELECT * FROM dallas_weather where zipcode = \'%s\' and dte = \'%s\';"""%(zipcode, datetime.date.today()),
+                          con=con)
+    forecast_df = pd.read_sql(sql="""SELECT * FROM dallas_forecast where zipcode = \'%s\' and dte = \'%s\';"""%(zipcode, datetime.date.today()),
+                              con=con)
 
-    return live_df
+    return live_df, forecast_df
 
 
 #
@@ -66,3 +70,16 @@ def create_table():
     dte DATE
     )
     """)
+def delete_table():
+    '''A helper function to delete the table'''
+    import mysql.connector as mariadb
+
+    # Connecting and init cursor
+    mariadb_connection = mariadb.connect(user='weather_scraper', password='ThomasBayes69!',
+                                         host='192.168.0.112', port='3306', database='weather')
+    cursor = mariadb_connection.cursor()
+    cursor.execute('''DROP TABLE dallas_forecast''')
+    mariadb_connection.commit()
+    mariadb_connection.close()
+
+delete_table()

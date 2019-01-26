@@ -30,6 +30,8 @@ def temp_graph(xdata, ydata, w, h):
     plt.circle(xdata, ydata, fill_color="white", size=8)
     return plt
 
-from db import data_query
-
-print(data_query())
+# from db import data_query
+# live, forecast = data_query()
+# # print(data_query())
+h = 'hi'
+print('''THIS %s'''%h)
