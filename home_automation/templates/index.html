@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta http-equiv="refresh" content="600">
+    <meta charset="utf-8">
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <title>Embed Demo</title>
+    {{ js_resources|indent(4)|safe }}
+    {{ css_resources|indent(4)|safe }}
+    {{ plot_script|indent(4)|safe }}
+
+    <meta http-equiv="refresh" content="600">
+  </head>
+  <body>
+    <!--The temperature graph-->
+    <div style="width: 20%; display: inline-block;">
+      {{ plot_div|indent(4)|safe }}
+    </div>
+
+    <!--{{ plot_script|indent(4)|safe }}-->
+    <!--Weather widget-->
+    <!--<div style="width: 20%; display: inline-block; float:right; top:100px">-->
+    <div style="width: 20%; display: inline-block; position:absolute; left:1245px; top:68px;">
+
+      {{ plot_div2 | safe }}
+      {{ plot_script2 | safe }}
+
+    </div>
+    <!--The box-->
+    <div style="top:800px; left:400px; width:200px; height:25px;border:1px solid #000;">This is a rectangle!</div>
+  </body>
+</html>
