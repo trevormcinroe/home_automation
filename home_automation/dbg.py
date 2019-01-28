@@ -1,6 +1,4 @@
-from db import data_query
+from googlemaps.googlemaps_api import get_distance
+import datetime
 
-
-live, _ = data_query(zipcode='75204')
-
-print(live['status'].tolist()[len()])
+print(datetime.datetime.strptime('09:30:00', '%H:%M:%S').time())
