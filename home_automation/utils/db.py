@@ -22,3 +22,9 @@ def data_query(zipcode):
                               con=con)
 
     return live_df, forecast_df
+
+    # This is the old version of the tempgraph div
+    # <div style="width: 20%; display: inline-block; position:absolute; left:10px; top:500px;">
+    #   {{ div_temp|indent(4)|safe }}
+    #   {{ script_temp|indent(4)|safe }}
+    # </div>

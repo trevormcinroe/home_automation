@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <link href="css/styles.css" rel="stylesheet" />
+    <meta http-equiv="refresh" content="600">
+    <meta charset="utf-8">
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <title>Embed Demo</title>
+    {{ js_resources|indent(4)|safe }}
+    {{ css_resources|indent(4)|safe }}
+
+    <!--For the Leafletjs Map-->
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+
+    <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+
+      <!--The styles for the divs-->
+      <!--tempgraph, map, weatherstatus, zipcode-->
+      <style>
+
+
+      #tempgraph {
+      top: 56vh;
+      left: 0.2vw;
+      width: 66.4vw;
+      height: 38vh;
+      z-index: 1;
+      position: absolute;
+      }
+
+      #map {
+      top: 2vh;
+      left: 19vw;
+      width: 46.5vw;
+      height: 53.8vh;
+      z-index: 2;
+      position: absolute;
+      }
+
+      #weatherstatus {
+      top: 13.5vh;
+      left: 2vw;
+      width: 15vw;
+      height: 41.1vh;
+      position: absolute;
+      z-index: 2;
+      background-color: #313335;
+      border-style: solid;
+      border-width: 6px;
+      border-color: #515658;
+      border-radius: 5px;
+      }
+      .status {
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+      width: 35%;
+      }
+
+      #zipcode{
+      top: 2vh;
+      left: 2vw;
+      width: 15vw;
+      height: 8vh;
+      position: absolute;
+      background-color: #313335;
+      border-style: solid;
+      border-width: 6px;
+      border-color: #515658;
+      border-radius: 5px;
+      }
+      .ziptext{
+      top: 2vh;
+      left: 2vw;
+      width: 15vw;
+      height: 9vh;
+      display:flex;
+      align-items: center;
+      justify-content:center;
+      color: #6a8759;
+      font-size: 50px;
+      font-family: Helvetica Neue,Helvetica,Arial,sans-serif;
+      }
+
+    </style>
+  </head>
+  <body style="background-color:#2b2b2b;">
+
+    <div id="weatherstatus">
+      <span class="status"><img src="imgs/weather_icons/dark/sunny.png"; width="100%"; height="100%"/></span>
+    </div>
+
+    <div id="map"></div>
+
+    <div id="tempgraph">
+      {{ div_temp|indent(4)|safe }}
+      {{ script_temp|indent(4)|safe }}
+    </div>
+
+    <div id="zipcode">
+      <div class="ziptext">
+        {{ zipcode }}
+      </div>
+    </div>
+
+
+    <!--Weather widget-->
+    <!--<div style="width: 20%; display: inline-block; float:right; top:100px">-->
+    <!--<div style="width: 20%; display: inline-block; position:absolute; left:100px; top:200px;">-->
+
+      <!--{{ plot_div3 | safe }}-->
+      <!--{{ plot_script3 | safe }}-->
+
+    <!--</div>-->
+
+    <!--&lt;!&ndash;The driving widget&ndash;&gt;-->
+    <!--<div style="width: 20%; display: inline-block; position:absolute; left:1245px; top:68px;">-->
+
+      <!--{{ plot_div2 | safe }}-->
+      <!--{{ plot_script2 | safe }}-->
+
+    </div>
+
+
+    <script>
+
+        var map = L.map('map').setView([32.8089545, -96.7971913], 9);
+        mapLink =
+            '<a href="http://openstreetmap.org"></a>';
+        L.tileLayer(
+            'http://{s}.tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png', {
+            attribution: 'Quadratic Insights',
+            maxZoom: 18,
+            }).addTo(map);
+
+
+
+
+    </script>
+  </body>
+</html>

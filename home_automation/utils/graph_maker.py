@@ -13,9 +13,9 @@ from googlemaps.googlemaps_api import get_distance
 
 class temp_graph():
     '''
-    A class to make temperature graphs
+    A class to make temperature graphs. Brings in data from 112.weather.*
     '''
-    def __init__(self, zipcode, width, height):
+    def __init__(self, zipcode):
         self.live = None
         self.forecast = None
         self.zipcode = zipcode
@@ -26,17 +26,17 @@ class temp_graph():
         self.forecat_high = None
         self.forecast_low = None
         self.forecast_df = None
-        self.width = width
-        self.height = height
         self.mode = None
         self.current_time = datetime.datetime.strptime(datetime.datetime.now().strftime('%H:%M:%S'),'%H:%M:%S').time()
 
     def update(self):
-        '''A function to rearrange the data in order to
         '''
-        # Querying the data
+        A function to rearrange the data in __init__ order to refresh the graph
+        '''
+        # Querying the data from dallas_weather, dallas_forecast
         self.live, self.forecast = data_query(zipcode=self.zipcode)
-        # Setting the xaxis
+
+        # Setting the xaxis. First grabbing current date at 00:00 and creating a point for every 10 minutes for live
         temp_today = datetime.datetime.strptime(datetime.date.today().strftime('%Y-%m-%d %H:%M'), '%Y-%m-%d %H:%M')
         l = [temp_today]
         for n in range(146):
@@ -44,6 +44,7 @@ class temp_graph():
             l.append(temp_today)
         self.xaxis_live = l
 
+        # Next, creating xaxis for forecast. This one shows data for every 3 hours
         temp_today = datetime.datetime.strptime(datetime.date.today().strftime('%Y-%m-%d %H:%M'), '%Y-%m-%d %H:%M')
         l2 = [temp_today]
         for n in range(7):
@@ -51,72 +52,68 @@ class temp_graph():
             l2.append(temp_today)
         self.xaxis_forecast = l2[3:]
 
-        # Setting temperatures
+        # Setting temperatures, all as lists so we can plot them easily later with Bokeh
         self.live_temp = self.live['temp'].tolist()
         self.forecast_df = pd.DataFrame({'low': self.forecast['temp_min'].tolist(),
                                       'high': self.forecast['temp_max'].tolist()})
         self.forecat_high = self.forecast['temp_max'].tolist()
         self.forecast_low = self.forecast['temp_min'].tolist()
 
-        # Setting mode
-        if self.current_time >= datetime.datetime.strptime(self.live['sunset'].tolist()[0],'%H:%M:%S').time() or self.current_time >= datetime.datetime.strptime(self.live['sunset'].tolist()[0], '%H:%M:%S').time():
+        # If current time is > sunset in data, switch to night mode. This changes the aesthetics in render_graph()
+        if self.current_time >= datetime.datetime.strptime(self.live['sunset'].tolist()[0], '%H:%M:%S').time() or self.current_time >= datetime.datetime.strptime(self.live['sunset'].tolist()[0], '%H:%M:%S').time():
             self.mode = 'night'
         else:
             self.mode = 'day'
 
 
     def render_graph(self):
-        '''A function that outputs the graph
         '''
+        A function that outputs the temperature graph
+        '''
+
+        # Init the figure. Dynamic yaxis range based on np.min/max(live, forecast) -/+ 1. Also setting xaxas as datetime. Change later?
         p = figure(
-            plot_width = self.width,
-            plot_height = self.height,
             y_range=[np.min([np.min(self.forecast_low), np.min(self.live_temp)]) - 1,
                             np.max([np.max(self.live_temp), np.max(self.forecat_high)]) + 1],
-            # title='Temperature for %s' % self.zipcode,
-            # x_axis_label='time',
-            # y_axis_label='temperature (F)',
             x_axis_type='datetime'
         )
 
-        # p.title.text_font_size = '25pt'
-        # p.title.text_color = "olive"
-        # p.title.text_font = "roboto"
-        # p.title.text_font_style = "italic"
+        # This method allows for dynamic sizing via the CSS in dashboard_* #tempgraph{}
+        p.sizing_mode = 'stretch_both'
+
 
         # Light mode vs dark mode
         if self.mode == 'night':
 
             # === TEMPERATURE PLOT DARK/NIGHT MODE === #
-            # Data (live, high, low)
+            # Setting the actual data. Live has a line and points
+            # TODO: add historical live's to line via p.circle()?
             p.line(x=self.xaxis_live, y=self.live_temp, line_color='#e4c46d', line_cap='round', line_width=9,
                    line_alpha=1, line_join='round')
-            # p.circle(x=self.xaxis_live, y=self.live_temp,
-            #          fill_color='#937cb3', line_color=None, size=4, alpha=1)
-
             p.circle(x=self.xaxis_live[len(self.live_temp)-1],
                      y=self.live_temp[len(self.live_temp)-1],
                      fill_color='#191970', line_color=None, size=8, alpha=0.65)
 
+            # Setting data for high, then low. Both only have circles. High's are larger than low's
             p.circle(x=self.xaxis_forecast, y=self.forecat_high, fill_color='#aa4926',
                      size=16, line_color=None, alpha=1)
-
             p.circle(x=self.xaxis_forecast, y=self.forecast_low, fill_color='#6797bb',
                      size=14, line_color=None, alpha=1)
 
-            # Text
+            # This displays the current temperature on the most up-to-date live temperature
             source = ColumnDataSource(dict(x=[self.xaxis_live[len(self.live_temp) - 1]],
                                            y=[self.live_temp[len(self.live_temp) - 1]],
                                            text=[str(self.live_temp[len(self.live_temp) - 1])]))
             glyph = Text(x="x", y="y", text="text", angle=0, text_color="#e4c46d", text_font_size='14pt')
             p.add_glyph(source, glyph)
 
-            # Axes (x, y)
+            # Xaxis
             p.xaxis.axis_line_width = 0
             p.xaxis.axis_label_text_font_size = '15pt'
             p.xaxis.major_label_text_font_size = '13pt'
             p.xaxis.major_label_text_color = "#6a8759"
 
+            # Yaxis
             p.yaxis.axis_line_width = 0
             p.yaxis.axis_label_text_font_size = '15pt'
             p.yaxis.major_label_text_font_size = '13pt'
@@ -125,7 +122,6 @@ class temp_graph():
             # Gridlines
             p.xgrid.grid_line_color = '#515658'
             p.ygrid.grid_line_color = '#515658'
-
             p.xgrid.grid_line_width = 3
             p.ygrid.grid_line_width = 3
 
@@ -133,16 +129,21 @@ class temp_graph():
             p.background_fill_color = '#313335'
             p.background_fill_alpha = 0.95
 
-            # Border
-            p.outline_line_width = 10
-            p.outline_line_alpha = 1
+            # Outline
+            p.outline_line_width = 6.5
             p.outline_line_color = "#515658"
-            p.border_fill_color = "#2b2b2b"
 
-            # Misc
+
+            # Border (min_border_top to ensure no clipping of y-axis numbers from <div>)
+
+            p.border_fill_color = "#2b2b2b"
+            p.min_border_top = 10
+
+            # Misc -- removes some of the interactivity of the graph
             p.toolbar.logo = None
             p.toolbar_location = None
 
+            # Padding to ensure the <div> in dashboard_* doesn't clip the graph
             p.min_border_left = 23
             p.min_border_right = 23
             p.min_border_top = 23
@@ -152,37 +153,36 @@ class temp_graph():
         else:
 
             # === TEMPERATURE PLOT LIGHT MODE === #
-            # Data (live, high, low)
+            # Setting the actual data. Live has a line and points.
+            # TODO: two circles here as one most current, and all historical live's
             p.line(x=self.xaxis_live, y=self.live_temp, line_color='#4ABDAC', line_cap='round', line_width=6,
                    line_alpha=0.65, line_join='round')
-
             p.circle(x=self.xaxis_live, y=self.live_temp,
                      fill_color='#111e6c', line_color=None, size=4, alpha=0.65)
-
             p.circle(x=self.xaxis_live[len(self.live_temp)-1],
                      y=self.live_temp[len(self.live_temp)-1],
                      fill_color='#111e6c', line_color=None, size=8, alpha=0.65)
 
-            # Text
-            source = ColumnDataSource(dict(x=[self.xaxis_live[len(self.live_temp)-1]],
-                                           y=[self.live_temp[len(self.live_temp)-1]],
-                                           text=[str(self.live_temp[len(self.live_temp)-1])]))
-            glyph = Text(x="x", y="y", text="text", angle=0, text_color="#000000", text_font_size='14pt')
-            p.add_glyph(source, glyph)
-
-
+            # Setting data for high, then low. Both only have circles. High's are larger than low's
             p.circle(x=self.xaxis_forecast, y=self.forecat_high,
                      fill_color='#e0474c', size=16, line_color=None, alpha=0.85)
 
             p.circle(x=self.xaxis_forecast, y=self.forecast_low,
                      fill_color='#7acfd6', size=14, line_color=None, alpha=0.85)
 
+            # This displays the current temperature on the most up-to-date live temperature
+            source = ColumnDataSource(dict(x=[self.xaxis_live[len(self.live_temp)-1]],
+                                           y=[self.live_temp[len(self.live_temp)-1]],
+                                           text=[str(self.live_temp[len(self.live_temp)-1])]))
+            glyph = Text(x="x", y="y", text="text", angle=0, text_color="#000000", text_font_size='14pt')
+            p.add_glyph(source, glyph)
 
-            # Axes (x, y)
+            # Xaxis
             p.xaxis.axis_line_width = 0
             p.xaxis.axis_label_text_font_size = '15pt'
             p.xaxis.major_label_text_font_size = '13pt'
 
+            # Yaxis
             p.yaxis.axis_line_width = 0
             p.yaxis.axis_label_text_font_size = '15pt'
             p.yaxis.major_label_text_font_size = '13pt'
@@ -190,7 +190,6 @@ class temp_graph():
             # Gridlines
             p.xgrid.grid_line_color = '#ffffff'
             p.ygrid.grid_line_color = '#ffffff'
-
             p.xgrid.grid_line_width = 3
             p.ygrid.grid_line_width = 3
 
@@ -198,14 +197,24 @@ class temp_graph():
             p.background_fill_color = '#DFDCE3'
             p.background_fill_alpha = 0.95
 
-            # Border
-            p.outline_line_width = 10
+            # Outline
+            p.outline_line_width = 6.5
             p.outline_line_alpha = 0.85
             p.outline_line_color = "#00303F"
+
+            # Border (min_border_top to ensure no clipping of y-axis numbers from <div>)
+            p.border_fill_color = "#d0dad1"
+            p.min_border_top = 10
+
 
             # Misc
             p.toolbar.logo = None
             p.toolbar_location = None
+
+            # Padding to ensure the <div> in dashboard_* doesn't clip the graph
+            p.min_border_left = 23
+            p.min_border_right = 23
+            p.min_border_top = 23
 
             return p
 

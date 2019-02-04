@@ -1,38 +1,58 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
-    <meta charset="utf-8">
-    <title>Traffic Layer</title>
-    <style>
-      /* Always set the map height explicitly to define the size of the div
-       * element that contains the map. */
-      #map {
-        height: 100%;
-      }
-      /* Optional: Makes the sample page fill the window. */
-      html, body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="map"></div>
-    <script>
-      function initMap() {
-        var map = new google.maps.Map(document.getElementById('map'), {
-          zoom: 13,
-          center: {lat: 34.04924594193164, lng: -118.24104309082031}
-        });
 
-        var trafficLayer = new google.maps.TrafficLayer();
-        trafficLayer.setMap(map);
-      }
-    </script>
-    <script async defer
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAKKczSsEdOiNuNo-99Ka-qR0GgRgBpwx0&callback=initMap">
-    </script>
-  </body>
+<html>
+
+<head>
+    <!--<meta http-equiv="refresh" content="3">-->
+     <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+
+    <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+
+<title>Leaflet Web Map</title>
+
+<style>
+    #map {
+    top: 0.5vh;
+    left: 0.5vw;
+    width: 60vw;
+    height: 50vh;
+    z-index: 1;
+    position: absolute;
+    }
+
+    #driveinfo {
+    top: 0.5vh;
+    left: 0.5vw;
+    background-color: green;
+    z-index: 2;
+    position: absolute;
+    width: 50px;
+    height 20px;
+    }
+
+</style>
+
+</head>
+
+<body>
+<div id="driveinfo" style="width:400px; height:150px">HELLO</div>
+<div id="map"></div>
+
+
+<script>
+
+        var map = L.map('map').setView([32.8089545, -96.7971913], 9);
+        mapLink =
+            '<a href="http://openstreetmap.org"></a>';
+        L.tileLayer(
+            'https://korona.geog.uni-heidelberg.de/tiles/roads/x={x}&y={y}&z={z}', {
+            attribution: 'Quadratic Insights',
+            maxZoom: 18,
+            }).addTo(map);
+
+
+</script>
+
+</body>
+
 </html>
